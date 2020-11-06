@@ -1,0 +1,276 @@
+#!/bin/bash
+#assignment 1
+# Wei Huang
+#10/14/2019
+
+#reference:
+#instructor's sourse code
+#https://stackoverflow.com/questions/5761212/count-number-of-columns-in-bash
+#Ryanwall15(2018).CS344-Matrix.Github. Feb 20,2018. from: https://github.com/Ryanwall15/CS344-Matrix
+#https://blog.csdn.net/xifeijian/article/details/10312995
+#https://which-dwarf-are-you.blogspot.com/2015/06/bash-matrix-multiplication.html
+
+#for P1gradingscriprt shows arguments check is empty, but I think the code is wrok for check. so I just got 88 point. however, I don't think this is final grade.
+
+
+#dims function
+dims(){
+	#get line in matrix
+	row=$(wc -l < $1)
+	#https://stackoverflow.com/questions/5761212/count-number-of-columns-in-bash
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+	echo "$row" "$col"
+}
+
+# when common is $cat m2 | ./matrix,
+c_dims(){
+	cat > $1
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+	echo "$row" "$col"
+}
+
+
+# transpose function
+transpose(){
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+	#reflect the elements of matrix that N*M to M*N
+	for (( i = 1; i <= $col; i++ ));
+	do
+		cut -f "$i" "$1" | paste -s;
+	done
+}
+
+
+# when common is $cat m2 | ./matrix,
+c_transpose(){
+	cat > $1
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+	#reflect the elements of matrix that N*M to M*N
+	for (( i = 1; i <= $col; i++ ));
+	do
+		cut -f "$i" "$1" | paste -s;
+	done
+}
+
+
+# mean function
+#https://github.com/Ryanwall15/CS344-Matrix
+mean(){
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+#take an M*N matrix and return an 1*N row vector
+sum=0
+count=0
+	for (( i = 1; i <= $col; i++ ));
+	do
+		temp=$(cut -f "$i" "$1" | paste -s)
+		for num in $temp;
+		do
+			sum=$((sum + num))
+			count=$((count + 1))
+		done
+		mean=$(((sum + (count/2)*((sum>0)*2 - 1 ) ) /count))
+		if (( i < $col )); then
+			echo -ne "$mean\t"
+		else
+			echo "$mean"
+		fi
+	done
+}
+
+
+# when common is $cat m2 | ./matrix,
+c_mean(){
+	cat > $1
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+#take an M*N matrix and return an 1*N row vector
+sum=0
+count=0
+	for (( i = 1; i <= $col; i++ ));
+	do
+		temp=$(cut -f "$i" "$1" | paste -s)
+		for num in $temp;
+		do
+			sum=$((sum + num))
+			count=$((count + 1))
+		done
+		mean=$(((sum + (count/2)*((sum>0)*2 - 1 ) ) /count))
+		if (( i < $col )); then
+			echo -ne "$mean\t"
+		else
+			echo "$mean"
+		fi
+	done
+}
+
+#add function
+#https://stackoverflow.com/questions/5761212/count-number-of-columns-in-bash
+add(){
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+
+	#get line in matrix
+	row2=$(wc -l < $2)
+	# get col in matrix
+	col2=$( head -n 1 $2| wc -w)
+	#check the matrix
+	if [ $row -ne $row2 ] || [ $col -ne $col2 ]; then
+		exit 1
+	fi
+  #loop each number to add
+	a=0
+	b=0
+	for (( i = 1; i <= $row; i++ ));
+	do
+		for (( j = 1; j <= $col; j++ ));
+		do
+			a=$j
+			b=$i
+			count1=$(cut -f $a $1 | head -n $b | tail -n 1)
+			count2=$(cut -f $a $2 | head -n $b | tail -n 1)
+			sum=`expr $count1 + $count2`
+				if (($a < $col)); then
+					echo -ne "$sum\t"
+				else
+					echo "$sum"
+				fi
+		done
+	done
+}
+
+
+#multiply function
+#https://which-dwarf-are-you.blogspot.com/2015/06/bash-matrix-multiplication.html
+multiply(){
+	#get line in matrix
+	row=$(wc -l < $1)
+	# get col in matrix
+	col=$( head -n 1 $1| wc -w)
+	#get line in matrix
+	row2=$(wc -l < $2)
+	# get col in matrix
+	col2=$( head -n 1 $2| wc -w)
+#check matix
+	if [ $col -ne $row2 ]; then
+		exit 1
+	fi
+	# loop each number to multiply m1 and m2
+	sum=0
+	mul=0
+	a=0
+	b=0
+	c=0
+	for (( i = 1; i <= $row; i++ ));
+	do
+		for (( j = 1; j <= $col2; j++ ));
+		do
+			for (( x = 1; x <= $col; x++ ));
+			do
+				a=$i
+				b=$j
+				c=$x
+				count1=$(cat $1 | cut -f $c | head -n $a | tail -n 1)
+				count2=$(cat $2 | cut -f $b | head -n $c | tail -n 1)
+				mul=`expr $count1 \* $count2`
+				sum=`expr $sum + $mul`
+			done
+			if (( $b < $col2 )); then
+				echo -ne "$sum\t"
+			else
+				echo "$sum"
+			fi
+		done
+	done
+}
+
+#main function
+
+#input argument 1
+if [ $1 = "dims" ]; then
+  if [ "$#" -eq 2 ]; then
+    dims $@
+  elif [ "$#" -eq 1 ];then
+    c_dims $@
+  else
+    echo "the input is uncorrect" 1>&2
+		exit 1
+	fi
+elif [ "$#" -eq 2 ] && [ $1 = "transpose" ]; then
+  transpose $@
+elif [ "$#" -eq 2 ]&&[ $1 = "mean" ]; then
+  mean $@
+elif [ "$#" -eq 3 ]&&[ $1 = "add" ]; then
+  add $@
+elif [ "$#" -eq 3 ]&&[ $1 = "multiply" ]; then
+  if [ ! -r $2 ] || [ ! -r $3 ];then
+    echo "please check the file, it is unreadable" 1>&2
+    exit 1
+  fi
+  multiply $@
+
+else
+  echo "error" 1>&2
+  exit 1
+fi
+# if [ "$#" -eq 1 ]; then
+# 	#dims
+# 	if [ "$1" == "dims" ]; then
+# 		c_dims "$@"
+# 		#transpose
+# 	elif [ "$1" == "transpose" ]; then
+# 		c_transpose "$@"
+# 		#mean
+# 	elif [ "$1" == "mean" ]; then
+# 		c_mean "$@"
+# 	else
+# 		exit 1
+# 	fi
+#
+# #input argument 2
+# #dims
+# elif [ "$#" -eq 2 ]; then
+# 	#dims
+# 	if [ "$1" == "dims" ]; then
+# 		dims "$2"
+# 	#transpose
+# elif [ "$1" == "transpose" ]; then
+# 		transpose "$2"
+# 	#mean
+# elif [ "$1" == "mean" ]; then
+# 		mean "$2"
+# 	else
+# 		exit 1
+# 	fi
+#
+# #if input argument are three
+# elif [ "$#" -eq 3 ]; then
+# 	#add
+# 	if [ "$1" == "add" ]; then
+# 		add "$2" "$3"
+# 	#multiply
+# 	elif [ "$1" == "multiply" ]; then
+# 		multiply "$2" "$3"
+# 	else
+# 		exit 1
+# 	fi
+#
+# else
+# 	exit 1
+# fi
